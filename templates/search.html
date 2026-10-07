@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Search Music - Pemphero Music Site</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <header>
+        <h1>Pemphero Music Site</h1>
+        <p>Search music</p>
+    </header>
+
+    <nav>
+        <a href="/">Home</a>
+        <a href="/add-song">Add Song</a>
+        <a href="/search">Search</a>
+    </nav>
+
+    <main>
+
+        <form action="/search" method="GET">
+
+            <input
+                type="text"
+                name="q"
+                value="{{ query }}"
+                placeholder="Search songs or artists..."
+                required
+            >
+
+            <button type="submit">
+                Search
+            </button>
+
+        </form>
+
+        <h2>
+            Search results for: {{ query }}
+        </h2>
+
+        {% if results %}
+
+            {% for result in results %}
+
+            <div class="song-card">
+
+                <img
+                    src="{{ result.snippet.thumbnails.medium.url }}"
+                    alt="Song cover"
+                >
+
+                <h3>
+                    {{ result.snippet.title }}
+                </h3>
+
+                <p>
+                    {{ result.snippet.channelTitle }}
+                </p>
+
+                <iframe
+                    width="100%"
+                    height="315"
+                    src="https://www.youtube.com/embed/{{ result.id.videoId }}"
+                    title="{{ result.snippet.title }}"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>No music found.</p>
+
+        {% endif %}
+
+    </main>
+
+</body>
+
+</html>
