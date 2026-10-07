@@ -1,9 +1,17 @@
-from flask import Flask, send_from_directory, render_template, request, redirect
+import os
 import sqlite3
+from flask import Flask, send_from_directory, render_template, request, redirect
 
 app = Flask(__name__)
 
 DATABASE = "music.db"
+
+UPLOAD_FOLDER = "uploads"
+MUSIC_FOLDER = os.path.join(UPLOAD_FOLDER, "music")
+IMAGE_FOLDER = os.path.join(UPLOAD_FOLDER, "images")
+
+os.makedirs(MUSIC_FOLDER, exist_ok=True)
+os.makedirs(IMAGE_FOLDER, exist_ok=True)
 
 
 def init_db():
@@ -54,13 +62,8 @@ def add_song():
         audio = audio_file.filename
         cover = cover_file.filename
 
-        audio_file.save(
-            r"C:\Users\User\Desktop\music website\\" + audio
-        )
-
-        cover_file.save(
-            r"C:\Users\User\Desktop\music website\\" + cover
-        )
+        audio_file.save(os.path.join(MUSIC_FOLDER, audio))
+        cover_file.save(os.path.join(IMAGE_FOLDER, cover))
 
         database = sqlite3.connect(DATABASE)
         cursor = database.cursor()
@@ -80,18 +83,12 @@ def add_song():
 
 @app.route("/music/<filename>")
 def music(filename):
-    return send_from_directory(
-        r"C:\Users\User\Desktop\music website",
-        filename
-    )
+    return send_from_directory(MUSIC_FOLDER, filename)
 
 
 @app.route("/images/<filename>")
 def images(filename):
-    return send_from_directory(
-        r"C:\Users\User\Desktop\music website",
-        filename
-    )
+    return send_from_directory(IMAGE_FOLDER, filename)
 
 
 if __name__ == "__main__":
