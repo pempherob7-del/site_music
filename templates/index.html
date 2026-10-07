@@ -3,7 +3,9 @@
 
 <head>
     <title>My Music</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
@@ -16,13 +18,27 @@
     <nav>
         <a href="/">Home</a>
         <a href="/add-song">Add Song</a>
+        <a href="/search">Search</a>
         <a href="#">Artists</a>
         <a href="#">About</a>
     </nav>
 
     <main>
 
-        <input type="text" id="search" placeholder="Search songs or artists...">
+        <form action="/search" method="GET">
+
+            <input
+                type="text"
+                name="q"
+                placeholder="Search songs or artists..."
+                required
+            >
+
+            <button type="submit">
+                Search
+            </button>
+
+        </form>
 
         <h2>Featured Songs</h2>
 
@@ -30,14 +46,20 @@
 
         <div class="song-card">
 
-            <img src="/images/{{ song[4] }}" alt="Song cover">
+            <img
+                src="/images/{{ song[4] }}"
+                alt="Song cover"
+            >
 
             <h3>{{ song[1] }}</h3>
 
             <p>{{ song[2] }}</p>
 
             <audio controls>
-                <source src="/music/{{ song[3] }}" type="audio/mpeg">
+                <source
+                    src="/music/{{ song[3] }}"
+                    type="audio/mpeg"
+                >
             </audio>
 
         </div>
@@ -45,8 +67,6 @@
         {% endfor %}
 
     </main>
-
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>
 
