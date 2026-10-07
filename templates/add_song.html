@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Add Song - Pemphero Music Site</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <header>
+        <h1>Pemphero Music Site</h1>
+        <p>Add your music</p>
+    </header>
+
+    <nav>
+        <a href="/">Home</a>
+        <a href="/add-song">Add Song</a>
+        <a href="#">Artists</a>
+        <a href="#">About</a>
+    </nav>
+
+    <main>
+
+        <h2>Add a Song</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+
+            <input type="text" name="title" placeholder="Song title" required>
+            <br><br>
+
+            <input type="text" name="artist" placeholder="Artist name" required>
+            <br><br>
+
+            <label>Choose MP3:</label>
+            <br>
+            <input type="file" name="audio" accept=".mp3" required>
+            <br><br>
+
+            <label>Choose Cover:</label>
+            <br>
+            <input type="file" name="cover" accept="image/*" required>
+            <br><br>
+
+            <button type="submit">Add Song</button>
+
+        </form>
+
+    </main>
+
+</body>
+
+</html>
