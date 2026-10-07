@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import requests
 from flask import Flask, send_from_directory, render_template, request, redirect
 
 app = Flask(__name__)
@@ -12,6 +13,10 @@ IMAGE_FOLDER = os.path.join(UPLOAD_FOLDER, "images")
 
 os.makedirs(MUSIC_FOLDER, exist_ok=True)
 os.makedirs(IMAGE_FOLDER, exist_ok=True)
+
+
+# PUT YOUR YOUTUBE API KEY BETWEEN THE QUOTES
+YOUTUBE_API_KEY = "AIzaSyAcHnWOSU95K0Oa5Vb_SN827v9cK_aXA9U"
 
 
 def init_db():
@@ -79,6 +84,37 @@ def add_song():
         return redirect("/")
 
     return render_template("add_song.html")
+
+
+@app.route("/search")
+def search_music():
+
+    query = request.args.get("q", "").strip()
+
+    if not query:
+        return render_template("search.html", results=[], query="")
+
+    url = "https://www.googleapis.com/youtube/v3/search"
+
+    params = {
+        "part": "snippet",
+        "q": query,
+        "type": "video",
+        "maxResults": 10,
+        "key": YOUTUBE_API_KEY
+    }
+
+    response = requests.get(url, params=params)
+
+    data = response.json()
+
+    results = data.get("items", [])
+
+    return render_template(
+        "search.html",
+        results=results,
+        query=query
+    )
 
 
 @app.route("/music/<filename>")
