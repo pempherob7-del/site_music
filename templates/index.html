@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My Music</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <header>
+        <h1>Pemphero Music Site</h1>
+        <p>Discover and listen to music</p>
+    </header>
+
+    <nav>
+        <a href="/">Home</a>
+        <a href="/add-song">Add Song</a>
+        <a href="#">Artists</a>
+        <a href="#">About</a>
+    </nav>
+
+    <main>
+
+        <input type="text" id="search" placeholder="Search songs or artists...">
+
+        <h2>Featured Songs</h2>
+
+        {% for song in songs %}
+
+        <div class="song-card">
+
+            <img src="/images/{{ song[4] }}" alt="Song cover">
+
+            <h3>{{ song[1] }}</h3>
+
+            <p>{{ song[2] }}</p>
+
+            <audio controls>
+                <source src="/music/{{ song[3] }}" type="audio/mpeg">
+            </audio>
+
+        </div>
+
+        {% endfor %}
+
+    </main>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+
+</html>
