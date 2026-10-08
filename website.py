@@ -12,32 +12,92 @@ from flask import (
     abort,
     session
 )
+
 from werkzeug.utils import secure_filename
+
 
 app = Flask(__name__)
 
-# Secret key for login sessions
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-secret")
+# =========================
+# SECRET KEY
+# =========================
+
+app.secret_key = os.environ.get(
+    "FLASK_SECRET_KEY",
+    "change-this-secret"
+)
+
+
+# =========================
+# DATABASE
+# =========================
 
 DATABASE = "music.db"
 
+
+# =========================
+# UPLOAD FOLDERS
+# =========================
+
 UPLOAD_FOLDER = "uploads"
-MUSIC_FOLDER = os.path.join(UPLOAD_FOLDER, "music")
-IMAGE_FOLDER = os.path.join(UPLOAD_FOLDER, "images")
 
-os.makedirs(MUSIC_FOLDER, exist_ok=True)
-os.makedirs(IMAGE_FOLDER, exist_ok=True)
+MUSIC_FOLDER = os.path.join(
+    UPLOAD_FOLDER,
+    "music"
+)
 
-# YouTube API
-YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "")
+IMAGE_FOLDER = os.path.join(
+    UPLOAD_FOLDER,
+    "images"
+)
 
-# Admin login
-ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
 
+os.makedirs(
+    MUSIC_FOLDER,
+    exist_ok=True
+)
+
+os.makedirs(
+    IMAGE_FOLDER,
+    exist_ok=True
+)
+
+
+# =========================
+# YOUTUBE API
+# =========================
+
+YOUTUBE_API_KEY = os.environ.get(
+    "YOUTUBE_API_KEY",
+    ""
+)
+
+
+# =========================
+# ADMIN LOGIN
+# =========================
+
+ADMIN_USERNAME = os.environ.get(
+    "ADMIN_USERNAME",
+    ""
+)
+
+ADMIN_PASSWORD = os.environ.get(
+    "ADMIN_PASSWORD",
+    ""
+)
+
+
+# =========================
+# DATABASE SETUP
+# =========================
 
 def init_db():
-    database = sqlite3.connect(DATABASE)
+
+    database = sqlite3.connect(
+        DATABASE
+    )
+
     cursor = database.cursor()
 
     cursor.execute("""
@@ -51,6 +111,7 @@ def init_db():
     """)
 
     database.commit()
+
     database.close()
 
 
@@ -61,28 +122,56 @@ init_db()
 # ADMIN LOGIN
 # =========================
 
-@app.route("/admin", methods=["GET", "POST"])
+@app.route(
+    "/admin",
+    methods=["GET", "POST"]
+)
 def admin_login():
 
     if request.method == "POST":
 
-        username = request.form.get("username", "")
-        password = request.form.get("password", "")
+        username = request.form.get(
+            "username",
+            ""
+        )
 
-        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        password = request.form.get(
+            "password",
+            ""
+        )
 
-            session["admin_logged_in"] = True
+        if (
+            username == ADMIN_USERNAME
+            and
+            password == ADMIN_PASSWORD
+        ):
 
-            return redirect("/add-song")
+            session[
+                "admin_logged_in"
+            ] = True
 
-        return "Wrong username or password."
+            return redirect(
+                "/add-song"
+            )
+
+        return """
+        <h2>Wrong username or password.</h2>
+        <a href="/admin">Try again</a>
+        """
 
     return """
     <!DOCTYPE html>
+
     <html>
+
     <head>
-        <title>Admin Login</title>
+
+        <title>
+            Pemphero Music Admin
+        </title>
+
         <style>
+
             body {
                 font-family: Arial;
                 background: #111827;
@@ -105,6 +194,7 @@ def admin_login():
                 margin: 10px;
                 border-radius: 8px;
                 border: none;
+                box-sizing: border-box;
             }
 
             button {
@@ -112,17 +202,22 @@ def admin_login():
                 border: none;
                 border-radius: 8px;
                 background: #facc15;
+                color: #111827;
                 cursor: pointer;
                 font-weight: bold;
             }
+
         </style>
+
     </head>
 
     <body>
 
         <div class="login-box">
 
-            <h1>Admin Login</h1>
+            <h1>
+                Admin Login
+            </h1>
 
             <form method="POST">
 
@@ -149,6 +244,7 @@ def admin_login():
         </div>
 
     </body>
+
     </html>
     """
 
@@ -160,22 +256,32 @@ def admin_login():
 @app.route("/logout")
 def logout():
 
-    session.pop("admin_logged_in", None)
+    session.pop(
+        "admin_logged_in",
+        None
+    )
 
     return redirect("/")
 
 
 # =========================
-# HOME
+# HOME PAGE
 # =========================
 
 @app.route("/")
 def home():
 
-    database = sqlite3.connect(DATABASE)
+    database = sqlite3.connect(
+        DATABASE
+    )
+
     cursor = database.cursor()
 
-    cursor.execute("SELECT * FROM songs ORDER BY id DESC")
+    cursor.execute("""
+        SELECT *
+        FROM songs
+        ORDER BY id DESC
+    """)
 
     songs = cursor.fetchall()
 
@@ -191,35 +297,75 @@ def home():
 # ADD SONG
 # =========================
 
-@app.route("/add-song", methods=["GET", "POST"])
+@app.route(
+    "/add-song",
+    methods=["GET", "POST"]
+)
 def add_song():
 
-    # BLOCK EVERYONE EXCEPT ADMIN
-    if not session.get("admin_logged_in"):
-        return redirect("/admin")
+    # Only admin can upload
+    if not session.get(
+        "admin_logged_in"
+    ):
+
+        return redirect(
+            "/admin"
+        )
 
     if request.method == "POST":
 
-        title = request.form.get("title", "").strip()
-        artist = request.form.get("artist", "").strip()
+        title = request.form.get(
+            "title",
+            ""
+        ).strip()
 
-        audio_file = request.files.get("audio")
-        cover_file = request.files.get("cover")
+        artist = request.form.get(
+            "artist",
+            ""
+        ).strip()
+
+        audio_file = request.files.get(
+            "audio"
+        )
+
+        cover_file = request.files.get(
+            "cover"
+        )
 
         if (
             not title
-            or not artist
-            or not audio_file
-            or not cover_file
-            or not audio_file.filename
-            or not cover_file.filename
+            or
+            not artist
+            or
+            not audio_file
+            or
+            not cover_file
+            or
+            not audio_file.filename
+            or
+            not cover_file.filename
         ):
-            return "Please provide the song title, artist, audio and cover."
 
-        audio_name = secure_filename(audio_file.filename)
-        cover_name = secure_filename(cover_file.filename)
+            return (
+                "Please provide "
+                "the song title, artist, "
+                "audio and cover."
+            )
 
-        if not audio_name or not cover_name:
+        audio_name = secure_filename(
+            audio_file.filename
+        )
+
+        cover_name = secure_filename(
+            cover_file.filename
+        )
+
+        if (
+            not audio_name
+            or
+            not cover_name
+        ):
+
             return "Invalid filename."
 
         audio_path = os.path.join(
@@ -232,13 +378,20 @@ def add_song():
             cover_name
         )
 
-        audio_file.save(audio_path)
+        audio_file.save(
+            audio_path
+        )
 
         try:
 
-            cover_file.save(cover_path)
+            cover_file.save(
+                cover_path
+            )
 
-            database = sqlite3.connect(DATABASE)
+            database = sqlite3.connect(
+                DATABASE
+            )
+
             cursor = database.cursor()
 
             cursor.execute("""
@@ -253,78 +406,146 @@ def add_song():
             ))
 
             database.commit()
+
             database.close()
 
         except Exception:
 
-            if os.path.exists(audio_path):
-                os.remove(audio_path)
+            if os.path.exists(
+                audio_path
+            ):
 
-            if os.path.exists(cover_path):
-                os.remove(cover_path)
+                os.remove(
+                    audio_path
+                )
+
+            if os.path.exists(
+                cover_path
+            ):
+
+                os.remove(
+                    cover_path
+                )
 
             raise
 
         return redirect("/")
 
-    return render_template("add_song.html")
+
+    return render_template(
+        "add_song.html"
+    )
 
 
 # =========================
-# YOUTUBE SEARCH
+# SEARCH
 # =========================
 
 @app.route("/search")
 def search_music():
 
-    query = request.args.get("q", "").strip()
+    query = request.args.get(
+        "q",
+        ""
+    ).strip()
 
-    if not query:
 
-        return render_template(
-            "search.html",
-            results=[],
-            query=""
+    # -------------------------
+    # SEARCH YOUR MUSIC
+    # -------------------------
+
+    database = sqlite3.connect(
+        DATABASE
+    )
+
+    cursor = database.cursor()
+
+    if query:
+
+        cursor.execute("""
+            SELECT *
+            FROM songs
+            WHERE title LIKE ?
+            OR artist LIKE ?
+            ORDER BY id DESC
+        """, (
+            "%" + query + "%",
+            "%" + query + "%"
+        ))
+
+    else:
+
+        cursor.execute("""
+            SELECT *
+            FROM songs
+            ORDER BY id DESC
+        """)
+
+
+    songs = cursor.fetchall()
+
+    database.close()
+
+
+    # -------------------------
+    # SEARCH YOUTUBE
+    # -------------------------
+
+    results = []
+
+
+    if (
+        query
+        and
+        YOUTUBE_API_KEY
+    ):
+
+        url = (
+            "https://www.googleapis.com/"
+            "youtube/v3/search"
         )
 
-    if not YOUTUBE_API_KEY:
+        params = {
 
-        return (
-            "YouTube search is not configured yet."
-        ), 503
+            "part": "snippet",
 
-    url = "https://www.googleapis.com/youtube/v3/search"
+            "q": query,
 
-    params = {
-        "part": "snippet",
-        "q": query,
-        "type": "video",
-        "maxResults": 10,
-        "key": YOUTUBE_API_KEY
-    }
+            "type": "video",
 
-    try:
+            "maxResults": 10,
 
-        response = requests.get(
-            url,
-            params=params,
-            timeout=15
-        )
+            "key": YOUTUBE_API_KEY
 
-        response.raise_for_status()
+        }
 
-        data = response.json()
 
-    except requests.RequestException:
+        try:
 
-        return (
-            "YouTube search is temporarily unavailable."
-        ), 502
+            response = requests.get(
+                url,
+                params=params,
+                timeout=15
+            )
 
-    results = data.get("items", [])
+            response.raise_for_status()
+
+            data = response.json()
+
+            results = data.get(
+                "items",
+                []
+            )
+
+
+        except requests.RequestException:
+
+            results = []
+
 
     return render_template(
         "search.html",
+        songs=songs,
         results=results,
         query=query
     )
@@ -334,7 +555,9 @@ def search_music():
 # PLAY MUSIC
 # =========================
 
-@app.route("/music/<filename>")
+@app.route(
+    "/music/<filename>"
+)
 def music(filename):
 
     return send_from_directory(
@@ -344,10 +567,12 @@ def music(filename):
 
 
 # =========================
-# SONG COVER
+# SONG IMAGES
 # =========================
 
-@app.route("/images/<filename>")
+@app.route(
+    "/images/<filename>"
+)
 def images(filename):
 
     return send_from_directory(
@@ -357,17 +582,26 @@ def images(filename):
 
 
 # =========================
-# DOWNLOAD MUSIC
+# DOWNLOAD SONG
 # =========================
 
-@app.route("/download/<filename>")
+@app.route(
+    "/download/<filename>"
+)
 def download_song(filename):
 
-    database = sqlite3.connect(DATABASE)
+    database = sqlite3.connect(
+        DATABASE
+    )
+
     cursor = database.cursor()
 
     cursor.execute(
-        "SELECT title FROM songs WHERE audio = ?",
+        """
+        SELECT title
+        FROM songs
+        WHERE audio = ?
+        """,
         (filename,)
     )
 
@@ -375,18 +609,34 @@ def download_song(filename):
 
     database.close()
 
+
     if not song:
+
         abort(404)
 
+
     return send_file(
+
         os.path.join(
             MUSIC_FOLDER,
             filename
         ),
+
         as_attachment=True,
-        download_name=os.path.basename(filename)
+
+        download_name=os.path.basename(
+            filename
+        )
+
     )
 
 
+# =========================
+# RUN APP
+# =========================
+
 if __name__ == "__main__":
-    app.run(debug=True)
+
+    app.run(
+        debug=True
+    )
