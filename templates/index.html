@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Pemphero Music Site</title>
 
@@ -19,11 +19,14 @@
         <a href="/">Home</a>
         <a href="/add-song">Add Song</a>
         <a href="/search">Search</a>
+        <a href="#">Artists</a>
+        <a href="#">About</a>
     </nav>
 
     <main>
 
         <form action="/search" method="GET">
+
             <input
                 type="text"
                 name="q"
@@ -31,7 +34,10 @@
                 required
             >
 
-            <button type="submit">Search</button>
+            <button type="submit">
+                Search
+            </button>
+
         </form>
 
         <h2>Featured Songs</h2>
@@ -40,20 +46,28 @@
 
         <div class="song-card">
 
-            <img src="/images/{{ song[4] }}"
-                 alt="Song cover">
+            <img
+                src="/images/{{ song[4] }}"
+                alt="Song cover"
+            >
 
             <h3>{{ song[1] }}</h3>
 
             <p>{{ song[2] }}</p>
 
             <audio controls>
-                <source src="/music/{{ song[3] }}"
-                        type="audio/mpeg">
+                <source
+                    src="/music/{{ song[3] }}"
+                    type="audio/mpeg"
+                >
+                Your browser does not support audio.
             </audio>
 
-            <a class="download-btn"
-               href="/download/{{ song[3] }}">
+            <!-- DOWNLOAD BUTTON -->
+            <a
+                class="download-btn"
+                href="/download/{{ song[3] }}"
+            >
                 Download Song
             </a>
 
@@ -64,4 +78,5 @@
     </main>
 
 </body>
+
 </html>
