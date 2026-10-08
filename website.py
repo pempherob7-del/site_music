@@ -1,7 +1,18 @@
+
 import os
 import sqlite3
 import requests
-from flask import Flask, send_from_directory, render_template, request, redirect
+
+from flask import (
+    Flask,
+    send_from_directory,
+    send_file,
+    render_template,
+    request,
+    redirect,
+    abort
+)
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -14,9 +25,9 @@ IMAGE_FOLDER = os.path.join(UPLOAD_FOLDER, "images")
 os.makedirs(MUSIC_FOLDER, exist_ok=True)
 os.makedirs(IMAGE_FOLDER, exist_ok=True)
 
-
-# PUT YOUR YOUTUBE API KEY BETWEEN THE QUOTES
-YOUTUBE_API_KEY = "AIzaSyAcHnWOSU95K0Oa5Vb_SN827v9cK_aXA9U"
+# Add your YouTube API key here.
+# Keep your real key private.
+YOUTUBE_API_KEY = os.environ.get("AIzaSyAcHnWOSU95K0Oa5Vb_SN827v9cK_aXA9U", "")
 
 
 def init_db():
@@ -24,13 +35,13 @@ def init_db():
     cursor = database.cursor()
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS songs (
-        id INTEGER PRIMARY KEY,
-        title TEXT,
-        artist TEXT,
-        audio TEXT,
-        cover TEXT
-    )
+        CREATE TABLE IF NOT EXISTS songs (
+            id INTEGER PRIMARY KEY,
+            title TEXT,
+            artist TEXT,
+            audio TEXT,
+            cover TEXT
+        )
     """)
 
     database.commit()
@@ -45,7 +56,7 @@ def home():
     database = sqlite3.connect(DATABASE)
     cursor = database.cursor()
 
-    cursor.execute("SELECT * FROM songs")
+    cursor.execute("SELECT * FROM songs ORDER BY id DESC")
     songs = cursor.fetchall()
 
     database.close()
@@ -55,31 +66,54 @@ def home():
 
 @app.route("/add-song", methods=["GET", "POST"])
 def add_song():
-
     if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        artist = request.form.get("artist", "").strip()
 
-        title = request.form["title"]
-        artist = request.form["artist"]
+        audio_file = request.files.get("audio")
+        cover_file = request.files.get("cover")
 
-        audio_file = request.files["audio"]
-        cover_file = request.files["cover"]
+        if (
+            not title
+            or not artist
+            or not audio_file
+            or not cover_file
+            or not audio_file.filename
+            or not cover_file.filename
+        ):
+            return "Please provide the song title, artist, audio and cover."
 
-        audio = audio_file.filename
-        cover = cover_file.filename
+        audio_name = secure_filename(audio_file.filename)
+        cover_name = secure_filename(cover_file.filename)
 
-        audio_file.save(os.path.join(MUSIC_FOLDER, audio))
-        cover_file.save(os.path.join(IMAGE_FOLDER, cover))
+        if not audio_name or not cover_name:
+            return "Invalid filename."
 
-        database = sqlite3.connect(DATABASE)
-        cursor = database.cursor()
+        audio_path = os.path.join(MUSIC_FOLDER, audio_name)
+        cover_path = os.path.join(IMAGE_FOLDER, cover_name)
 
-        cursor.execute("""
-        INSERT INTO songs (title, artist, audio, cover)
-        VALUES (?, ?, ?, ?)
-        """, (title, artist, audio, cover))
+        audio_file.save(audio_path)
 
-        database.commit()
-        database.close()
+        try:
+            cover_file.save(cover_path)
+
+            database = sqlite3.connect(DATABASE)
+            cursor = database.cursor()
+
+            cursor.execute("""
+                INSERT INTO songs (title, artist, audio, cover)
+                VALUES (?, ?, ?, ?)
+            """, (title, artist, audio_name, cover_name))
+
+            database.commit()
+            database.close()
+
+        except Exception:
+            if os.path.exists(audio_path):
+                os.remove(audio_path)
+            if os.path.exists(cover_path):
+                os.remove(cover_path)
+            raise
 
         return redirect("/")
 
@@ -88,11 +122,20 @@ def add_song():
 
 @app.route("/search")
 def search_music():
-
     query = request.args.get("q", "").strip()
 
     if not query:
-        return render_template("search.html", results=[], query="")
+        return render_template(
+            "search.html",
+            results=[],
+            query=""
+        )
+
+    if not YOUTUBE_API_KEY:
+        return (
+            "YouTube search is not configured yet. "
+            "Set the YOUTUBE_API_KEY environment variable."
+        ), 503
 
     url = "https://www.googleapis.com/youtube/v3/search"
 
@@ -104,9 +147,17 @@ def search_music():
         "key": YOUTUBE_API_KEY
     }
 
-    response = requests.get(url, params=params)
+    try:
+        response = requests.get(
+            url,
+            params=params,
+            timeout=15
+        )
+        response.raise_for_status()
+        data = response.json()
 
-    data = response.json()
+    except requests.RequestException:
+        return "YouTube search is temporarily unavailable.", 502
 
     results = data.get("items", [])
 
@@ -127,5 +178,28 @@ def images(filename):
     return send_from_directory(IMAGE_FOLDER, filename)
 
 
+@app.route("/download/<filename>")
+def download_song(filename):
+    database = sqlite3.connect(DATABASE)
+    cursor = database.cursor()
+
+    cursor.execute(
+        "SELECT title FROM songs WHERE audio = ?",
+        (filename,)
+    )
+    song = cursor.fetchone()
+
+    database.close()
+
+    if not song:
+        abort(404)
+
+    return send_file(
+        os.path.join(MUSIC_FOLDER, filename),
+        as_attachment=True,
+        download_name=os.path.basename(filename)
+    )
+
+
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
