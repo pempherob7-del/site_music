@@ -1,8 +1,8 @@
+
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>My Music</title>
+    <title>Pemphero Music Site</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
@@ -12,21 +12,18 @@
 
     <header>
         <h1>Pemphero Music Site</h1>
-        <p>Discover and listen to music</p>
+        <p>Discover, listen and download music</p>
     </header>
 
     <nav>
         <a href="/">Home</a>
         <a href="/add-song">Add Song</a>
         <a href="/search">Search</a>
-        <a href="#">Artists</a>
-        <a href="#">About</a>
     </nav>
 
     <main>
 
         <form action="/search" method="GET">
-
             <input
                 type="text"
                 name="q"
@@ -34,10 +31,7 @@
                 required
             >
 
-            <button type="submit">
-                Search
-            </button>
-
+            <button type="submit">Search</button>
         </form>
 
         <h2>Featured Songs</h2>
@@ -46,21 +40,22 @@
 
         <div class="song-card">
 
-            <img
-                src="/images/{{ song[4] }}"
-                alt="Song cover"
-            >
+            <img src="/images/{{ song[4] }}"
+                 alt="Song cover">
 
             <h3>{{ song[1] }}</h3>
 
             <p>{{ song[2] }}</p>
 
             <audio controls>
-                <source
-                    src="/music/{{ song[3] }}"
-                    type="audio/mpeg"
-                >
+                <source src="/music/{{ song[3] }}"
+                        type="audio/mpeg">
             </audio>
+
+            <a class="download-btn"
+               href="/download/{{ song[3] }}">
+                Download Song
+            </a>
 
         </div>
 
@@ -69,5 +64,4 @@
     </main>
 
 </body>
-
 </html>
