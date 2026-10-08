@@ -26,8 +26,8 @@ os.makedirs(MUSIC_FOLDER, exist_ok=True)
 os.makedirs(IMAGE_FOLDER, exist_ok=True)
 
 # Add your YouTube API key here.
-# Keep your real key private.
-YOUTUBE_API_KEY = os.environ.get("AIzaSyAcHnWOSU95K0Oa5Vb_SN827v9cK_aXA9U",")
+# Keep your real key private. 
+YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "")
 
 
 def init_db():
