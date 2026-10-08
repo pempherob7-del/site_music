@@ -213,3 +213,20 @@ button:hover {
         height: 230px;
     }
 }
+.download-btn {
+    display: block;
+    width: fit-content;
+    margin: 20px auto;
+    padding: 15px 28px;
+    background: #facc15;
+    color: #111827;
+    text-decoration: none;
+    font-size: 17px;
+    font-weight: bold;
+    border-radius: 30px;
+}
+
+.download-btn:hover {
+    background: #fde047;
+    transform: scale(1.05);
+}
