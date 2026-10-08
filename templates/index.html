@@ -19,8 +19,6 @@
         <a href="/">Home</a>
         <a href="/add-song">Add Song</a>
         <a href="/search">Search</a>
-        <a href="#">Artists</a>
-        <a href="#">About</a>
     </nav>
 
     <main>
@@ -34,46 +32,66 @@
                 required
             >
 
-            <button type="submit">
-                Search
-            </button>
+            <button type="submit">Search</button>
 
         </form>
 
         <h2>Featured Songs</h2>
 
-        {% for song in songs %}
+        {% if songs %}
 
-        <div class="song-card">
+            {% for song in songs %}
 
-            <img
-                src="/images/{{ song[4] }}"
-                alt="Song cover"
-            >
+            <div class="song-card">
 
-            <h3>{{ song[1] }}</h3>
-
-            <p>{{ song[2] }}</p>
-
-            <audio controls>
-                <source
-                    src="/music/{{ song[3] }}"
-                    type="audio/mpeg"
+                <img
+                    src="/images/{{ song[4] }}"
+                    alt="Song cover"
                 >
 
-                Your browser does not support audio.
-            </audio>
+                <h3>{{ song[1] }}</h3>
 
-            <a
-                class="download-btn"
-                href="/download/{{ song[3] }}"
-            >
-                Download Song
-            </a>
+                <p>{{ song[2] }}</p>
 
-        </div>
+                <audio controls>
+                    <source
+                        src="/music/{{ song[3] }}"
+                        type="audio/mpeg"
+                    >
+                </audio>
 
-        {% endfor %}
+                <!-- DOWNLOAD -->
+                <div style="text-align:center; margin-top:25px;">
+
+                    <a
+                        href="/download/{{ song[3] }}"
+                        style="
+                            display:inline-block;
+                            background:#facc15;
+                            color:#111827;
+                            padding:16px 30px;
+                            border-radius:40px;
+                            text-decoration:none;
+                            font-size:18px;
+                            font-weight:bold;
+                        "
+                    >
+                        ⬇ Download Song
+                    </a>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p style="text-align:center;">
+                No songs uploaded yet.
+            </p>
+
+        {% endif %}
 
     </main>
 
