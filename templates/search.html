@@ -2,130 +2,180 @@
 <html>
 
 <head>
-    <title>Search Music - Pemphero Music</title>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
+    <title>
+        Search - Pemphero Music
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
 </head>
 
 <body>
 
 <header>
-    <h1>Pemphero Music</h1>
-    <p>Search music</p>
+
+    <h1>
+        Pemphero Music
+    </h1>
+
+    <p>
+        Search Music
+    </p>
+
 </header>
 
+
 <nav>
-    <a href="/">Home</a>
-    <a href="/add-song">Upload Music</a>
-    <a href="/search">Search</a>
+
+    <a href="/">
+        Home
+    </a>
+
+    <a href="/add-song">
+        Upload Music
+    </a>
+
+    <a href="/search">
+        Search
+    </a>
+
 </nav>
+
 
 <main>
 
-    <form action="/search" method="GET">
 
-        <input
-            type="text"
-            name="q"
-            value="{{ query }}"
-            placeholder="Search songs or artists..."
-            required
+<!-- SEARCH BOX -->
+
+<form
+    action="/search"
+    method="GET"
+>
+
+    <input
+        type="text"
+        name="q"
+        value="{{ query }}"
+        placeholder="Search songs or artists..."
+        required
+    >
+
+    <button type="submit">
+        Search
+    </button>
+
+</form>
+
+
+<!-- YOUR MUSIC -->
+
+<h2>
+    Your Music
+</h2>
+
+
+{% if songs %}
+
+    {% for song in songs %}
+
+    <div class="song-card">
+
+        <img
+            src="{{ url_for('images', filename=song[4]) }}"
+            alt="{{ song[1] }}"
         >
 
-        <button type="submit">
-            Search
-        </button>
+        <h3>
+            {{ song[1] }}
+        </h3>
 
-    </form>
+        <p>
+            {{ song[2] }}
+        </p>
 
 
-    <!-- YOUR UPLOADED MUSIC -->
+        <audio controls>
 
-    <h2>Your Music</h2>
-
-    {% if songs %}
-
-        {% for song in songs %}
-
-        <div class="song-card">
-
-            <img
-                src="{{ url_for('images', filename=song[4]) }}"
-                alt="{{ song[1] }}"
+            <source
+                src="{{ url_for('music', filename=song[3]) }}"
+                type="audio/mpeg"
             >
 
-            <h3>{{ song[1] }}</h3>
-
-            <p>{{ song[2] }}</p>
-
-            <audio controls>
-
-                <source
-                    src="{{ url_for('music', filename=song[3]) }}"
-                    type="audio/mpeg"
-                >
-
-            </audio>
-
-            <a
-                href="{{ url_for('download_song', filename=song[3]) }}"
-                class="download-btn"
-            >
-                ⬇ Download
-            </a>
-
-        </div>
-
-        {% endfor %}
-
-    {% else %}
-
-        <p>No uploaded music found.</p>
-
-    {% endif %}
+        </audio>
 
 
-    <!-- YOUTUBE RESULTS -->
+        <a
+            href="{{ url_for('download_song', filename=song[3]) }}"
+            class="download-btn"
+        >
+            ⬇ Download Song
+        </a>
 
-    <h2>YouTube Results</h2>
+    </div>
 
-    {% if results %}
+    {% endfor %}
 
-        {% for result in results %}
+{% else %}
 
-        <div class="song-card">
+    <p>
+        No uploaded music found.
+    </p>
 
-            <img
-                src="{{ result.snippet.thumbnails.medium.url }}"
-                alt="YouTube thumbnail"
-            >
+{% endif %}
 
-            <h3>
-                {{ result.snippet.title }}
-            </h3>
 
-            <p>
-                {{ result.snippet.channelTitle }}
-            </p>
 
-            <iframe
-                width="100%"
-                height="315"
-                src="https://www.youtube.com/embed/{{ result.id.videoId }}"
-                frameborder="0"
-                allowfullscreen>
-            </iframe>
+<!-- YOUTUBE -->
 
-        </div>
+<h2>
+    YouTube Results
+</h2>
 
-        {% endfor %}
 
-    {% else %}
+{% if results %}
 
-        <p>No YouTube results found.</p>
+    {% for result in results %}
 
-    {% endif %}
+    <div class="song-card">
+
+        <img
+            src="{{ result.snippet.thumbnails.medium.url }}"
+            alt="YouTube thumbnail"
+        >
+
+        <h3>
+            {{ result.snippet.title }}
+        </h3>
+
+        <p>
+            {{ result.snippet.channelTitle }}
+        </p>
+
+
+        <iframe
+            width="100%"
+            height="315"
+            src="https://www.youtube.com/embed/{{ result.id.videoId }}"
+            frameborder="0"
+            allowfullscreen>
+        </iframe>
+
+    </div>
+
+    {% endfor %}
+
+{% else %}
+
+    <p>
+        No YouTube results found.
+    </p>
+
+{% endif %}
+
 
 </main>
 
